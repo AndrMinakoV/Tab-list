@@ -79,7 +79,7 @@ public class ExampleMod {
         public static void renderBackgroundTexture(PoseStack poseStack) {
             Minecraft mc = Minecraft.getInstance();
             RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
-            blit(poseStack, 0, 0, 0, 0, mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight(), 1920, 1080);
+            blit(poseStack, 0, 0, 0, 0, mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight(), 1792, 1024);
         }
 
     }
