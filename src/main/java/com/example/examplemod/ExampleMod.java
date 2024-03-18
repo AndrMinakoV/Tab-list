@@ -28,98 +28,105 @@ public class ExampleMod {
     public ExampleMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addListener(this::onClientSetup);
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
     private void onClientSetup(final FMLClientSetupEvent event) {
-        MinecraftForge.EVENT_BUS.register(ClientModEvents.class);
+        MinecraftForge.EVENT_BUS.register(new ClientModEvents());
     }
 
     @Mod.EventBusSubscriber(modid = ExampleMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
     public static class ClientModEvents {
         private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(ExampleMod.MODID, "textures/gui/title/background.png");
 
-        // Слушатель для добавления кнопок на экране заголовка.
+        @SubscribeEvent
+        public static void onScreenOpening(ScreenEvent.Opening event) {
+            if (event.getScreen() instanceof TitleScreen) {
+                event.setNewScreen(new CustomTitleScreen());
+            }
+        }
+        public static class TexturedButton extends Button {
+            private final ResourceLocation texture;
+            private final int u;
+            private final int v;
+            private final int textureWidth;
+            private final int textureHeight;
 
-        public static class ExampleButton extends Button {
-            public ExampleButton(int x, int y, int width, int height, Component message, OnPress onPress) {
+            public TexturedButton(int x, int y, int width, int height, Component message, OnPress onPress, ResourceLocation texture, int u, int v, int textureWidth, int textureHeight) {
                 super(x, y, width, height, message, onPress);
+                this.texture = texture;
+                this.u = u;
+                this.v = v;
+                this.textureWidth = textureWidth;
+                this.textureHeight = textureHeight;
             }
 
             @Override
             public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-                super.renderButton(poseStack, mouseX, mouseY, partialTicks);
-                // Тут ваш код для рендеринга фона кнопки, если он вам нужен
-                // Например, вы можете нарисовать цветной прямоугольник или использовать свою текстуру
+                Minecraft mc = Minecraft.getInstance();
+                RenderSystem.setShaderTexture(0, texture);
+                blit(poseStack, this.x, this.y, this.u, this.v, this.width, this.height, textureWidth, textureHeight);
+                if (this.isHoveredOrFocused()) {
+                    this.renderToolTip(poseStack, mouseX, mouseY);
+                }
             }
         }
 
-        @SubscribeEvent
-        public static void onTitleScreenInit(ScreenEvent.Init event) {
-            if (!(event.getScreen() instanceof TitleScreen)) return;
-            event.getScreen().children().removeIf(e ->
-                    e instanceof Button && (
-                            ((Button) e).getMessage().getString().equals("Mods") ||
-                                    ((Button) e).getMessage().getString().equals("Выход")
-                    )
-            );
-            Minecraft mc = Minecraft.getInstance();
-            int buttonWidth = 100;
-            int buttonHeight = 20;
-            int y = mc.getWindow().getGuiScaledHeight() / 4 + 120;
-            int x = mc.getWindow().getGuiScaledWidth() / 2 - buttonWidth - 5; // Изменено здесь
-
-            Button forumButton = new ExampleButton(x, y, buttonWidth, buttonHeight, Component.literal("Форум"), button -> {
-                // Действие при нажатии на кнопку "Форум"
-            });
-
-            // Расчёт x для discordButton с учётом отступа
-            int discordButtonX = x + buttonWidth + 10;
-
-            Button discordButton = new ExampleButton(discordButtonX, y, buttonWidth, buttonHeight, Component.literal("Дискорд"), button -> {
-                // Действие при нажатии на кнопку "Дискорд"
-            });
-
-            event.addListener(forumButton);
-            event.addListener(discordButton);
-        }
-
-
-
-        /* // Слушатель для рендеринга фона перед интерфейсом.
-        @SubscribeEvent
-        public static void onScreenOpening(ScreenEvent.Opening event) {
-            Screen currentScreen = event.getScreen();
-            if (currentScreen instanceof TitleScreen) {
-                // Предполагаем, что CustomTitleScreen расширяет TitleScreen и добавляет необходимую логику
-                // для отображения вашей статичной панорамы
-                event.setNewScreen(new CustomTitleScreen());
+        public static class CustomTitleScreen extends Screen {
+            protected CustomTitleScreen() {
+                super(Component.literal("Custom Title Screen"));
             }
-        }
 
-        public static class CustomTitleScreen extends TitleScreen {
-            // ... ваш код для CustomTitleScreen ...
+            @Override
+            protected void init() {
+                super.init();
+                Minecraft mc = Minecraft.getInstance();
+                int buttonWidth = 200;
+                int buttonHeight = 20;
+                int spacing = 24; // Расстояние между кнопками
+                int x = (this.width - buttonWidth) / 2;
+                int y = (this.height - buttonHeight * 3 - spacing * 2) / 2;
+
+                // Предполагается, что у вас есть текстуры кнопок
+                ResourceLocation playButtonTexture = new ResourceLocation(ExampleMod.MODID, "textures/gui/buttons/play_button.png");
+                ResourceLocation settingsButtonTexture = new ResourceLocation(ExampleMod.MODID, "textures/gui/buttons/settings_button.png");
+                ResourceLocation forumButtonTexture = new ResourceLocation(ExampleMod.MODID, "textures/gui/buttons/forum_button.png");
+                ResourceLocation discordButtonTexture = new ResourceLocation(ExampleMod.MODID, "textures/gui/buttons/discord_button.png");
+
+                TexturedButton playButton = new TexturedButton(x, y, buttonWidth, buttonHeight, Component.literal("Подключиться: [14/260]"), button -> {
+                    // Действие при нажатии на кнопку "Play"
+                }, playButtonTexture, 0, 0, 347, 80);
+
+                TexturedButton settingsButton = new TexturedButton(x - buttonWidth / 2 - spacing / 2, y + buttonHeight + spacing, buttonWidth / 2, buttonHeight, Component.literal("Настройки"), button -> {
+                    // Действие при нажатии на кнопку "Настройки"
+                }, settingsButtonTexture, 0, 0, 256, 256);
+
+                TexturedButton forumButton = new TexturedButton(x + buttonWidth / 2 + spacing / 2, y + buttonHeight + spacing, buttonWidth / 2, buttonHeight, Component.literal("Форум"), button -> {
+                    // Действие при нажатии на кнопку "Форум"
+                }, forumButtonTexture, 0, 0, 256, 256);
+
+                TexturedButton discordButton = new TexturedButton(x, y + buttonHeight * 2 + spacing * 2, buttonWidth, buttonHeight, Component.literal("Дискорд"), button -> {
+                    // Действие при нажатии на кнопку "Дискорд"
+                }, discordButtonTexture, 0, 0, 256, 256);
+
+                this.addRenderableWidget(playButton);
+                this.addRenderableWidget(settingsButton);
+                this.addRenderableWidget(forumButton);
+                this.addRenderableWidget(discordButton);
+            }
+
 
             @Override
             public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-                // Рендеринг вашего фона
                 this.renderBackground(poseStack);
-
-                // Отрисовка других элементов экрана, если это необходимо
-                super.render(poseStack, mouseX, mouseY, partialTicks);
+                super.render(poseStack, mouseX, mouseY, partialTicks); // Этот вызов отрисует кнопки и другие элементы интерфейса
             }
 
             @Override
             public void renderBackground(PoseStack poseStack) {
-                // Рендеринг вашего статичного фона
-                Minecraft mc = Minecraft.getInstance();
                 RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
-                int screenWidth = mc.getWindow().getGuiScaledWidth();
-                int screenHeight = mc.getWindow().getGuiScaledHeight();
-                GuiComponent.blit(poseStack, 0, 0, screenWidth, screenHeight, 0, 0, 1792, 1024, 1792, 1024);
+                blit(poseStack, 0, 0, this.width, this.height, 0, 0, 1792, 1024, 1792, 1024);
             }
         }
-*/
-
-
     }
 }
