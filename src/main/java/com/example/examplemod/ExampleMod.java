@@ -56,18 +56,26 @@ public class ExampleMod {
         @SubscribeEvent
         public static void onTitleScreenInit(ScreenEvent.Init event) {
             if (!(event.getScreen() instanceof TitleScreen)) return;
-
+            event.getScreen().children().removeIf(e ->
+                    e instanceof Button && (
+                            ((Button) e).getMessage().getString().equals("Mods") ||
+                                    ((Button) e).getMessage().getString().equals("Выход")
+                    )
+            );
             Minecraft mc = Minecraft.getInstance();
-            int buttonWidth = 200;
+            int buttonWidth = 100;
             int buttonHeight = 20;
             int y = mc.getWindow().getGuiScaledHeight() / 4 + 120;
-            int x = mc.getWindow().getGuiScaledWidth() / 2 - buttonWidth / 2;
+            int x = mc.getWindow().getGuiScaledWidth() / 2 - buttonWidth - 5; // Изменено здесь
 
             Button forumButton = new ExampleButton(x, y, buttonWidth, buttonHeight, Component.literal("Форум"), button -> {
                 // Действие при нажатии на кнопку "Форум"
             });
 
-            Button discordButton = new ExampleButton(x, y + 24, buttonWidth, buttonHeight, Component.literal("Дискорд"), button -> {
+            // Расчёт x для discordButton с учётом отступа
+            int discordButtonX = x + buttonWidth + 10;
+
+            Button discordButton = new ExampleButton(discordButtonX, y, buttonWidth, buttonHeight, Component.literal("Дискорд"), button -> {
                 // Действие при нажатии на кнопку "Дискорд"
             });
 
@@ -76,7 +84,8 @@ public class ExampleMod {
         }
 
 
-        // Слушатель для рендеринга фона перед интерфейсом.
+
+        /* // Слушатель для рендеринга фона перед интерфейсом.
         @SubscribeEvent
         public static void onScreenOpening(ScreenEvent.Opening event) {
             Screen currentScreen = event.getScreen();
@@ -109,7 +118,7 @@ public class ExampleMod {
                 GuiComponent.blit(poseStack, 0, 0, screenWidth, screenHeight, 0, 0, 1792, 1024, 1792, 1024);
             }
         }
-
+*/
 
 
     }
