@@ -1,10 +1,16 @@
 package com.example.examplemod;
+import net.minecraft.Util;
+import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
+import net.minecraft.client.gui.screens.multiplayer.SafetyScreen;
+import net.minecraft.client.gui.screens.multiplayer.ServerSelectionList;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.DirectJoinServerScreen;
+import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
@@ -19,8 +25,11 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Button.OnPress;
 
 import javax.swing.*;
+import java.net.URI;
 
 @Mod(ExampleMod.MODID)
 public class ExampleMod {
@@ -79,40 +88,69 @@ public class ExampleMod {
         }
 
         public static class CustomTitleScreen extends Screen {
+            public final Screen previous = new TitleScreen();
+
             protected CustomTitleScreen() {
                 super(Component.literal("Custom Title Screen"));
             }
-
             @Override
             protected void init() {
                 super.init();
-                int buttonWidth = 200; // Должен соответствовать ширине текстуры
-                int buttonHeight = 20; // Должен соответствовать высоте текстуры
-                int y = this.height / 4;
+                int buttonWidthLarge = 200; // Ширина для "Играть" и "Дискорд"
+                int buttonHeight = 20;
+                int buttonSpacing = 10; // Пространство между маленькими кнопками
+                int smallButtonWidth = (buttonWidthLarge - buttonSpacing) / 2; // Ширина для "Настройки" и "Форум"
 
-                addTexturedButton(this.width / 2 - buttonWidth / 2, y, "play_button.png", "Подключиться: [14/260]");
-                addTexturedButton(this.width / 4 - buttonWidth / 4, y + buttonHeight * 2, "settings_button.png", "Настройки");
-                addTexturedButton(this.width / 4 * 3 - buttonWidth / 4, y + buttonHeight * 2, "forum_button.png", "Форум");
-                addTexturedButton(this.width / 2 - buttonWidth / 2, y + buttonHeight * 4, "discord_button.png", "Дискорд");
+                int centerX = this.width / 2;
+                int centerY = this.height /2 + 50; // Центрируем кнопки по вертикали
+
+                int topButtonY = centerY - buttonHeight * 2 - buttonSpacing; // Y для кнопки "Играть"
+                int middleButtonY = centerY - buttonHeight / 2; // Y для кнопок "Настройки" и "Форум"
+                int bottomButtonY = centerY + buttonHeight + buttonSpacing; // Y для "Дискорд"
+                // Кнопка "Играть"
+                addTexturedButton(centerX - buttonWidthLarge / 2, topButtonY, "play_button.png", "Играть: [14/260]", button -> {
+                    Minecraft.getInstance().setScreen(new JoinMultiplayerScreen(this));
+                });
+
+
+                // Кнопки "Настройки" и "Форум"
+                int settingsX = centerX - buttonWidthLarge / 2; // Начало слева от центра
+                int forumX = settingsX + smallButtonWidth + buttonSpacing; // Правее "Настройки"
+// Кнопка "Настройки"
+                addTexturedButton(settingsX, middleButtonY, "settings_button.png", "Настройки", (button) -> {
+                    Minecraft.getInstance().setScreen(new OptionsScreen(this, Minecraft.getInstance().options));
+                });
+
+                addTexturedButton(forumX, middleButtonY, "forum_button.png", "Форум", button -> {
+                    Util.getPlatform().openUri(URI.create("https://pornhub.com"));
+                });
+
+                // Кнопка "Дискорд"
+// Кнопка "Дискорд"
+                addTexturedButton(centerX - buttonWidthLarge / 2, bottomButtonY, "discord_button.png", "Дискорд", button -> {
+                    Util.getPlatform().openUri(URI.create("https://discord.gg/mcskill"));
+                });
+
+
             }
 
-            private void addTexturedButton(int x, int y, String textureName, String buttonText) {
+
+
+            private void addTexturedButton(int x, int y, String textureName, String buttonText, Button.OnPress onPress) {
+                // Подставляем ширину текстуры кнопки согласно её размеру
+                int textureWidth = buttonText.equals("Настройки") || buttonText.equals("Форум") ? 95 : 200; // 100 для маленьких, 200 для большой кнопки
+                int textureHeight = 20;
                 ResourceLocation buttonTexture = new ResourceLocation(ExampleMod.MODID, "textures/gui/buttons/" + textureName);
-                int textureWidth = 200; // Ширина текстуры в пикселях.
-                int textureHeight = 40; // Высота текстуры в пикселях.
-                int u = 0; // Начальная координата U для нормального состояния.
-                int v = 0; // Начальная координата V.
-                int uHover = textureWidth; // Предполагаем, что текстура наведения находится справа от обычного состояния.
 
-                TexturedButton texturedButton = new TexturedButton(
+                TexturedButton button = new TexturedButton(
                         x, y, textureWidth, textureHeight, Component.literal(buttonText),
-                        (button) -> {
-                            // Обработка нажатия кнопки
-                        },
-                        buttonTexture, u, v, textureWidth, textureHeight, uHover
+                        onPress, // Использование переданного параметра 'onPress'
+                        buttonTexture, 0, 0, textureWidth, textureHeight, textureWidth
                 );
-                this.addRenderableWidget(texturedButton);
+                this.addRenderableWidget(button);
+
             }
+
 
 
 
