@@ -20,6 +20,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import net.minecraft.client.gui.GuiComponent;
 
+import javax.swing.*;
+
 @Mod(ExampleMod.MODID)
 public class ExampleMod {
     public static final String MODID = "examplemod";
@@ -51,25 +53,29 @@ public class ExampleMod {
             private final int v;
             private final int textureWidth;
             private final int textureHeight;
+            private final int uHover;
 
-            public TexturedButton(int x, int y, int width, int height, Component message, OnPress onPress, ResourceLocation texture, int u, int v, int textureWidth, int textureHeight) {
+            public TexturedButton(int x, int y, int width, int height, Component message, OnPress onPress, ResourceLocation texture, int u, int v, int textureWidth, int textureHeight, int uHover) {
                 super(x, y, width, height, message, onPress);
                 this.texture = texture;
                 this.u = u;
                 this.v = v;
                 this.textureWidth = textureWidth;
                 this.textureHeight = textureHeight;
+                this.uHover = uHover;
             }
 
             @Override
             public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
                 Minecraft mc = Minecraft.getInstance();
                 RenderSystem.setShaderTexture(0, texture);
-                blit(poseStack, this.x, this.y, this.u, this.v, this.width, this.height, textureWidth, textureHeight);
-                if (this.isHoveredOrFocused()) {
-                    this.renderToolTip(poseStack, mouseX, mouseY);
-                }
+                int uOffset = this.isHoveredOrFocused() ? uHover : u;
+                blit(poseStack, this.x, this.y, uOffset, v, this.width, this.height, textureWidth, textureHeight);
+
+                // Отрисовываем текст по центру кнопки
+                drawCenteredString(poseStack, mc.font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, 0x76b5c5);
             }
+
         }
 
         public static class CustomTitleScreen extends Screen {
@@ -80,40 +86,35 @@ public class ExampleMod {
             @Override
             protected void init() {
                 super.init();
-                Minecraft mc = Minecraft.getInstance();
-                int buttonWidth = 200;
-                int buttonHeight = 20;
-                int spacing = 24; // Расстояние между кнопками
-                int x = (this.width - buttonWidth) / 2;
-                int y = (this.height - buttonHeight * 3 - spacing * 2) / 2;
+                int buttonWidth = 200; // Должен соответствовать ширине текстуры
+                int buttonHeight = 20; // Должен соответствовать высоте текстуры
+                int y = this.height / 4;
 
-                // Предполагается, что у вас есть текстуры кнопок
-                ResourceLocation playButtonTexture = new ResourceLocation(ExampleMod.MODID, "textures/gui/buttons/play_button.png");
-                ResourceLocation settingsButtonTexture = new ResourceLocation(ExampleMod.MODID, "textures/gui/buttons/settings_button.png");
-                ResourceLocation forumButtonTexture = new ResourceLocation(ExampleMod.MODID, "textures/gui/buttons/forum_button.png");
-                ResourceLocation discordButtonTexture = new ResourceLocation(ExampleMod.MODID, "textures/gui/buttons/discord_button.png");
-
-                TexturedButton playButton = new TexturedButton(x, y, buttonWidth, buttonHeight, Component.literal("Подключиться: [14/260]"), button -> {
-                    // Действие при нажатии на кнопку "Play"
-                }, playButtonTexture, 0, 0, 347, 80);
-
-                TexturedButton settingsButton = new TexturedButton(x - buttonWidth / 2 - spacing / 2, y + buttonHeight + spacing, buttonWidth / 2, buttonHeight, Component.literal("Настройки"), button -> {
-                    // Действие при нажатии на кнопку "Настройки"
-                }, settingsButtonTexture, 0, 0, 256, 256);
-
-                TexturedButton forumButton = new TexturedButton(x + buttonWidth / 2 + spacing / 2, y + buttonHeight + spacing, buttonWidth / 2, buttonHeight, Component.literal("Форум"), button -> {
-                    // Действие при нажатии на кнопку "Форум"
-                }, forumButtonTexture, 0, 0, 256, 256);
-
-                TexturedButton discordButton = new TexturedButton(x, y + buttonHeight * 2 + spacing * 2, buttonWidth, buttonHeight, Component.literal("Дискорд"), button -> {
-                    // Действие при нажатии на кнопку "Дискорд"
-                }, discordButtonTexture, 0, 0, 256, 256);
-
-                this.addRenderableWidget(playButton);
-                this.addRenderableWidget(settingsButton);
-                this.addRenderableWidget(forumButton);
-                this.addRenderableWidget(discordButton);
+                addTexturedButton(this.width / 2 - buttonWidth / 2, y, "play_button.png", "Подключиться: [14/260]");
+                addTexturedButton(this.width / 4 - buttonWidth / 4, y + buttonHeight * 2, "settings_button.png", "Настройки");
+                addTexturedButton(this.width / 4 * 3 - buttonWidth / 4, y + buttonHeight * 2, "forum_button.png", "Форум");
+                addTexturedButton(this.width / 2 - buttonWidth / 2, y + buttonHeight * 4, "discord_button.png", "Дискорд");
             }
+
+            private void addTexturedButton(int x, int y, String textureName, String buttonText) {
+                ResourceLocation buttonTexture = new ResourceLocation(ExampleMod.MODID, "textures/gui/buttons/" + textureName);
+                int textureWidth = 200; // Ширина текстуры в пикселях.
+                int textureHeight = 40; // Высота текстуры в пикселях.
+                int u = 0; // Начальная координата U для нормального состояния.
+                int v = 0; // Начальная координата V.
+                int uHover = textureWidth; // Предполагаем, что текстура наведения находится справа от обычного состояния.
+
+                TexturedButton texturedButton = new TexturedButton(
+                        x, y, textureWidth, textureHeight, Component.literal(buttonText),
+                        (button) -> {
+                            // Обработка нажатия кнопки
+                        },
+                        buttonTexture, u, v, textureWidth, textureHeight, uHover
+                );
+                this.addRenderableWidget(texturedButton);
+            }
+
+
 
 
             @Override
