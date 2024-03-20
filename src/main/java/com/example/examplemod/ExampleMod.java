@@ -12,6 +12,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.multiplayer.resolver.ServerAddress;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -106,9 +107,22 @@ public class ExampleMod {
                 int middleButtonY = centerY - buttonHeight / 2; // Y для кнопок "Настройки" и "Форум"
                 int bottomButtonY = centerY + buttonHeight + buttonSpacing; // Y для "Дискорд"
                 // Кнопка "Играть"
-                addTexturedButton(centerX - buttonWidthLarge / 2, topButtonY, "play_button.png", "Играть: [14/260]", button -> {
-                    Minecraft.getInstance().setScreen(new JoinMultiplayerScreen(this));
+                addTexturedButton(centerX - buttonWidthLarge / 2, topButtonY, "play_button.png", "Подключиться", button -> {
+                    String serverIP = "134.249.57.13"; // IP-адрес сервера
+// Если ваш сервер использует нестандартный порт, добавьте его после IP-адреса через двоеточие
+// Например: String serverIP = "134.249.57.13:25565";
+
+// Создаем объект ServerData
+                    ServerData serverData = new ServerData("MagicRPG 1.19.2", serverIP, false);
+
+// Создаем объект ServerAddress
+                    ServerAddress serverAddress = ServerAddress.parseString(serverIP);
+
+// Подключаемся к серверу
+                    ConnectScreen.startConnecting(this, Minecraft.getInstance(), serverAddress, serverData);
+
                 });
+
 
 
                 // Кнопки "Настройки" и "Форум"
