@@ -1,15 +1,14 @@
 package com.example.examplemod;
 import net.minecraft.Util;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
-import net.minecraft.client.gui.screens.multiplayer.SafetyScreen;
-import net.minecraft.client.gui.screens.multiplayer.ServerSelectionList;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.gui.screens.ConnectScreen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.DirectJoinServerScreen;
 import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -24,9 +23,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
-import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.components.Button.OnPress;
+
 
 import javax.swing.*;
 import java.net.URI;
@@ -100,6 +97,7 @@ public class ExampleMod {
                 int buttonHeight = 20;
                 int buttonSpacing = 10; // Пространство между маленькими кнопками
                 int smallButtonWidth = (buttonWidthLarge - buttonSpacing) / 2; // Ширина для "Настройки" и "Форум"
+                String logo = "Ваш текст здесь"; // Текст, который вы хотите отобразить
 
                 int centerX = this.width / 2;
                 int centerY = this.height /2 + 50; // Центрируем кнопки по вертикали
@@ -132,6 +130,7 @@ public class ExampleMod {
                 });
 
 
+
             }
 
 
@@ -158,7 +157,23 @@ public class ExampleMod {
             @Override
             public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
                 this.renderBackground(poseStack);
-                super.render(poseStack, mouseX, mouseY, partialTicks); // Этот вызов отрисует кнопки и другие элементы интерфейса
+                super.render(poseStack, mouseX, mouseY, partialTicks); // Этот вызов отрисует кнопки и другие элементы интерфейса\
+                String text1 = "123";
+                String text2 = "456";
+                int x1 = 1000; // Горизонтальная позиция для первой части текста
+                int y = 500; // Вертикальная позиция текста
+                int color1 = 0x64EF86; // Цвет первой части текста
+                int color2 = 0x612FF2; // Цвет второй части текста
+
+                // Отрисовка первой части текста
+                drawString(poseStack, this.font, text1, x1, y, color1);
+
+                // Рассчитываем ширину первой части текста
+                int widthOfFirstText = this.font.width(text1);
+
+                // Отрисовка второй части текста сразу после первой
+                int x2 = x1 + widthOfFirstText; // Горизонтальная позиция для второй части текста
+                drawString(poseStack, this.font, text2, x2, y, color2);
             }
 
             @Override
